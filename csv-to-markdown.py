@@ -5,18 +5,20 @@ import csv
 # Variables that shift with formatting
 delim = ','
 same_name = True
+args = sys.argv
 
 # Source file
-cl_input = sys.argv[1]
+cl_input = args[1]
 
 # Name for destination file if specified
-if sys.argc > 2:
+if len(args) > 2:
 	same_name = False
-	new_name = sys.argv[2] + '.md'
+	new_name = args[2] + '.md'
 
 # Usage statment for basic errors and -h
-if cl == '-h' || sys.arc < 1 || sys.argc > 3:
-	print ('python[3] input_filename [output_filename]')
+if cl_input == '-h' or len(args) < 1 or len(args) > 3:
+	print ('Usage: python[3] input_filename [output_filename]')
+	sys.exit(0)
 else: # if Error not covered
 	filename = cl_input
 
