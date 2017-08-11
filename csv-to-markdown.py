@@ -149,7 +149,7 @@ if formatting:
 							if (key[0],key[1]) in formats:
 								for styles in value:
 									formats[(key[0],key[1])].add(styles)
-							else:
+							elif str(key[0]).isdigit() and str(key[1]).isdigit():
 								formats[(key[0],key[1])] = value
 									
 					elif error != '-' and newline[index+2] not in format_locations and newline[index+2] not in format_special_index and newline[index+2] not in format_command and newline[index+2] not in format_options:
@@ -162,8 +162,16 @@ if formatting:
 				elif word == 'start':
 					key[0] = 0
 				elif word == 'end':
-					key[0] = len(data[key[1]])-1
-			elif word.isdigit() or word == 'all':
+					if str(key[1]).isdigit():
+						key[0] = len(data[key[1]])-1
+					else:
+						error = 'row must be defined before using "end"'
+			elif word.isdigit():
+				if newline[index-1] not in format_locations:
+					error = word+" cannot be attributed to a command"
+				else:
+					continue
+			elif word == 'all':
 				continue
 			else:
 				error = "Command was not found"
@@ -177,7 +185,7 @@ if formatting:
 		if (key[0],key[1]) in formats:
 			for styles in value:
 				formats[(key[0],key[1])].add(styles)
-		else:
+		elif str(key[0]).isdigit() and str(key[1]).isdigit():
 			formats[(key[0],key[1])] = value
 	
 	f.close()
