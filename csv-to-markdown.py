@@ -30,7 +30,7 @@ def format_item(formats, item, col, row):
 			if style_type == 'bold':
 				item = '**' + item + '**'
 			if style_type == 'italics':
-				item = '__' + item + '__'
+				item = '_' + item + '_'
 			if style_type == 'code':
 				item = '`' + item + '`'
 	return item
