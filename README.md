@@ -17,7 +17,7 @@ Can support any delimeter, but a comma is supported by default
 `-f --format format_file` : use the given file for formatting<br>
 
 ### Formatting File ###
-A formatting file can be provided to specify **bolding**, __italics__ and `code` in various cells.
+A formatting file can be provided to specify **bolding**, _italics_ and `code` in various cells.
 
 The style is defined by the keywords `bold`, `italics` and `code`.  In a statement these can be placed at any time and multiple styles can be used.
 
