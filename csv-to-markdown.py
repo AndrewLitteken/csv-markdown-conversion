@@ -152,7 +152,7 @@ if formatting:
 							else:
 								formats[(key[0],key[1])] = value
 									
-					elif error != '-' and word not in format_locations and word not in format_special_index and word not in format_command and word not in format_options:
+					elif error != '-' and newline[index+2] not in format_locations and newline[index+2] not in format_special_index and newline[index+2] not in format_command and newline[index+2] not in format_options:
 						error = newline[index+2]+" is an unsupported keyword"
 			elif word in format_special_index:
 				if word == 'title':
