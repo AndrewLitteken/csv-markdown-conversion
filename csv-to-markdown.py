@@ -29,12 +29,14 @@ formatting = False
 format_file = "-"
 verbose = False
 
+# Command line options
 try:
 	opts, args = getopt.getopt(sys.argv[1:], 'hsvd:i:o:f:', ["help", "verbose", "same_name", "delimeter=", "format=", "input=", "output="])
 except getopt.GetoptError as err:
 	print(err)
 	usage(2)
 
+#Parse Command Line
 for o, a in opts:
 	if o in ("-s", "--same_name"):
 		same_name = True
@@ -54,7 +56,7 @@ for o, a in opts:
 	else:
 		assert False, "unhandled option"
 
-# Create destination file if same as input
+# Create destination file if same as input and output not specified
 if same_name and input_loc == '-':
 	base_name = os.path.basename(input_loc)
 	output_loc = os.path.split(input_loc)[0]+os.path.splitext(base_name)[0] + '.md'
