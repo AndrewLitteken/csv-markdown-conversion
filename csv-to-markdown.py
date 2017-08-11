@@ -121,29 +121,39 @@ if formatting:
 	for num, line in enumerate(f):
 		newline = line.strip().split()
 		key=['','']
-		value=[]
+		value=set()
 		for index, word in enumerate(newline):
 			word = word.lower()
 			error = ''
 			if word in format_options:
-				value.append(word)
+				value.add(word)
 			elif word in format_locations:
 				digit=0
 				if newline[index+1].isdigit():
 					digit = int(newline[index+1])
 					if word == 'row' and digit < len(data):
 						key[1] = digit
-					elif word == 'col' and digit < len(data[0]):
+					elif word == 'col' and digit < len(data[digit]):
 						key[0] = digit
 					else: 
 						error = word+" out of range"
-				if newline[index+2] == "all" and error == '':
-					if word == 'row':
-						for i in range(0,len(data[0])):
-							key[0] = i
-					else:
-						for i in range(0, len(data)):
-							key[1] = i
+					if newline[index+2] == "all" and error == '':
+						if word == 'row':
+							key_index = 0
+							length =  len(data[digit])
+						else:
+							key_index = 1
+							len(data)
+						for i in range(0,length):
+							key[key_index] = i
+							if (key[0],key[1]) in formats:
+								for styles in value:
+									formats[(key[0],key[1])].add(styles)
+							else:
+								formats[(key[0],key[1])] = value
+									
+					elif error != '-' and word not in format_locations and word not in format_special_index and word not in format_command and word not in format_options:
+						error = newline[index+2]+" is an unsupported keyword"
 			elif word in format_special_index:
 				if word == 'title':
 					key[1] = 0
@@ -152,7 +162,7 @@ if formatting:
 				elif word == 'start':
 					key[0] = 0
 				elif word == 'end':
-					key[0] = len(data[0])-1
+					key[0] = len(data[key[1]])-1
 			elif word.isdigit() or word == 'all':
 				continue
 			else:
@@ -164,7 +174,12 @@ if formatting:
 			if key[0] != '' and key[1] != '':
 				continue
 		
-		formats[(key[0],key[1])] = value
+		if (key[0],key[1]) in formats:
+			for styles in value:
+				formats[(key[0],key[1])].add(styles)
+		else:
+			formats[(key[0],key[1])] = value
+	
 	f.close()
 
 # Parse information
