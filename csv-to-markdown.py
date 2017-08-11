@@ -108,9 +108,11 @@ for line in r:
 if r is not sys.stdin:
 	r.close()
 
+# read in fomratting file
 if formatting:
 	f = open(format_file, 'r')
 	
+	# Formatting infomration
 	special_locations = ()
 	style = False
 	format_options = ('bold', 'italics', 'code')
@@ -118,25 +120,41 @@ if formatting:
 	format_special_index = ('title', 'bottom', 'end', 'start')
 	format_command = ('remove')
 	formats = {}
+
+	# Get line from file
 	for num, line in enumerate(f):
 		newline = line.strip().split()
 		key=['','']
 		value=set()
+		
+		# Parse the line
 		for index, word in enumerate(newline):
 			word = word.lower()
 			error = ''
+			
+			# Look for style
 			if word in format_options:
 				value.add(word)
+
+			# Look to see if row or column indicated
 			elif word in format_locations:
 				digit=0
+
+				# Check to see if following item is a digit
 				if newline[index+1].isdigit():
 					digit = int(newline[index+1])
+					
+					# Assign location if in range
 					if word == 'row' and digit < len(data):
 						key[1] = digit
+					#Assign location if in range
 					elif word == 'col' and digit < len(data[digit]):
 						key[0] = digit
+					# set error
 					else: 
 						error = word+" out of range"
+					
+					# Check for "all" keyword and set in dictionary
 					if newline[index+2] == "all" and error == '':
 						if word == 'row':
 							key_index = 0
@@ -151,9 +169,11 @@ if formatting:
 									formats[(key[0],key[1])].add(styles)
 							elif str(key[0]).isdigit() and str(key[1]).isdigit():
 								formats[(key[0],key[1])] = value
-									
+					
+					# Check to see if an unsupported keyword has been given
 					elif error != '-' and newline[index+2] not in format_locations and newline[index+2] not in format_special_index and newline[index+2] not in format_command and newline[index+2] not in format_options:
 						error = newline[index+2]+" is an unsupported keyword"
+			# Check for special keywords
 			elif word in format_special_index:
 				if word == 'title':
 					key[1] = 0
@@ -161,11 +181,13 @@ if formatting:
 					key[1] = len(data)-1
 				elif word == 'start':
 					key[0] = 0
-				elif word == 'end':
+				elif word == 'end': # Set only if row defined
 					if str(key[1]).isdigit():
 						key[0] = len(data[key[1]])-1
 					else:
 						error = 'row must be defined before using "end"'
+			
+			# If argument is number, check context
 			elif word.isdigit():
 				if newline[index-1] not in format_locations:
 					error = word+" cannot be attributed to a command"
@@ -175,13 +197,12 @@ if formatting:
 				continue
 			else:
 				error = "Command was not found"
-
+			
+			# Display error message
 			if error != '':
 				error_message(4, num+1, error)
-			
-			if key[0] != '' and key[1] != '':
-				continue
 		
+		# Add to the dictioary if possible	
 		if (key[0],key[1]) in formats:
 			for styles in value:
 				formats[(key[0],key[1])].add(styles)
