@@ -76,13 +76,16 @@ for o, a in opts:
 		assert False, "unhandled option"
 
 # Create destination file if same as input and output not specified
-if same_name and input_loc == '-':
+if same_name and output_loc == '-' and input_loc != '-':
 	base_name = os.path.basename(input_loc)
 	output_loc = os.path.split(input_loc)[0]+os.path.splitext(base_name)[0] + '.md'
-elif input_loc != '-' and same_name:
+elif output_loc != '-' and same_name:
 	sys.stderr.write("Only -s or -o can be used at one time\n")
 	usage(3)
-	
+elif same_name and input_loc == '-':
+	sys.stderr.write("Input file must be specified for -s\n")
+	sys.exit(5)
+
 # Arrays for maximum characters per column and information
 if input_loc == '-':
 	r = sys.stdin
