@@ -2,7 +2,7 @@ import sys
 import os
 import getopt
 
-def usage(code=0):
+def usage(code = 0):
 	print('''
     usage: csv-to-markdown.py [-hv] [-i --input input_file] [-s --samename | -o
 		   --output output_file] [-d --delimeter delimeter] [-f --format format_file]
@@ -22,6 +22,57 @@ def usage(code=0):
 def error_handler(code, line_num, err):
 	sys.stderr.write("Line " + str(line_num) + ": " + err + "\n")
 	sys.exit(code) 
+
+def command_line_parse():
+	# Variables that shift with formatting
+	delim = ','
+	output_loc = '-'
+	same_name = False
+	input_loc = '-'
+	formatting = False
+	format_file = "-"
+	verbose = False
+
+	# Command line options
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'hsvd:i:o:f:', ["help", "verbose", "same_name", "delimeter=", "format=", "input=", "output="])
+	except getopt.GetoptError as err:
+		print(err)
+		usage(2)
+
+	#Parse Command Line
+	for o, a in opts:
+		if o in ("-s", "--same_name"):
+			same_name = True
+		elif o in ("-f", "--format"):
+			formatting = True
+			format_file = a
+		elif o in ("-i", "--input"):
+			input_loc = a
+		elif o in ("-o", "--output"):
+			output_loc = a
+		elif o in ("-v", "--verbose"):
+			verbose = True
+		elif o in ("-d", "--delimeter"):
+			delim = a
+		elif o in ("-h", "--help"):
+			usage(0)
+		else:
+			assert False, "unhandled option"
+
+	return delim, output_loc, same_name, input_loc, formatting, format_file, verbose
+
+def output_name(output_loc = '-', input_loc = '-'):
+	# Create destination file if same as input and output not specified
+	if output_loc == '-' and input_loc != '-':
+		base_name = os.path.basename(input_loc)
+		output_loc = os.path.split(input_loc)[0]+os.path.splitext(base_name)[0] + '.md'
+	elif output_loc != '-':
+		sys.stderr.write("Only -s or -o can be used at one time\n")
+		usage(3)
+	elif input_loc == '-':
+		sys.stderr.write("Input file must be specified for -s\n")
+		usage(5)
 
 def read_format_file(data, format_file):
 	f = open(format_file, 'r')
@@ -217,52 +268,11 @@ def print_data(output_loc, rows, maximum, max_length):
 		w.close()
 
 def main():
-	# Variables that shift with formatting
-	delim = ','
-	output_loc = '-'
-	same_name = False
-	input_loc = '-'
-	formatting = False
-	format_file = "-"
-	verbose = False
+	delim, output_loc, same_name, input_loc, formatting, format_file, \
+	verbose = command_line_parse()
 
-	# Command line options
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'hsvd:i:o:f:', ["help", "verbose", "same_name", "delimeter=", "format=", "input=", "output="])
-	except getopt.GetoptError as err:
-		print(err)
-		usage(2)
-
-	#Parse Command Line
-	for o, a in opts:
-		if o in ("-s", "--same_name"):
-			same_name = True
-		elif o in ("-f", "--format"):
-			formatting = True
-			format_file = a
-		elif o in ("-i", "--input"):
-			input_loc = a
-		elif o in ("-o", "--output"):
-			output_loc = a
-		elif o in ("-v", "--verbose"):
-			verbose = True
-		elif o in ("-d", "--delimeter"):
-			delim = a
-		elif o in ("-h", "--help"):
-			usage(0)
-		else:
-			assert False, "unhandled option"
-
-	# Create destination file if same as input and output not specified
-	if same_name and output_loc == '-' and input_loc != '-':
-		base_name = os.path.basename(input_loc)
-		output_loc = os.path.split(input_loc)[0]+os.path.splitext(base_name)[0] + '.md'
-	elif output_loc != '-' and same_name:
-		sys.stderr.write("Only -s or -o can be used at one time\n")
-		usage(3)
-	elif same_name and input_loc == '-':
-		sys.stderr.write("Input file must be specified for -s\n")
-		usage(5)
+	if same_name:
+		output_loc = output_name(output_loc, input_loc)
 
 
 	data, max_length = read_from_file(input_loc, delim)
