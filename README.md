@@ -7,14 +7,14 @@ Written in Python and compatible with both Python 2.7 and Python 3.
 Can support any delimeter, but a comma is supported by default
 
 ### Command Line Options ###
-`-h` `--help` : Show usage statement
-`-v` `--verbose` : Show verbose information at runtime
-`-s` `--same_name` : Use input file name with file ending "md"    
+`-h --help` : Show usage statement<br>
+`-v --verbose` : Show verbose information at runtime<br>
+`-s --same_name` : Use input file name with file ending "md"<br>    
  
- `-i` `--input` input\_file : use given file for input
- `-o` `--output` output\_file : use given file for output
- `-d` `--delimeter` delimeter : use the given delimeter
- `-f` `--format` format\_file : use the given file for formatting
+`-i --input input_file` : use given file for input<br>
+`-o --output output_file` : use given file for output<br>
+`-d --delimeter delimeter` : use the given delimeter<br>
+`-f --format format_file` : use the given file for formatting<br>
 
 ### Formatting File ###
 A formatting file can be provided to specify **bolding**, __italics__ and `code` in various cells.
