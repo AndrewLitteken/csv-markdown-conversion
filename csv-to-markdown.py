@@ -17,7 +17,26 @@ def usage(code=0):
 	''')
 	sys.exit(code)
 
-def format_item(item):
+def error_message(code, line_num, err):
+	sys.stderr.write("Line "+str(line_num)+": "+err+"\n")
+	sys.exit(code) 
+
+def format_item(item, col, row):
+	if (col, row) in formats:
+		style = formats[(col, row)]
+		for style_type in style:
+			if style_type == 'bold':
+				item = '**'+item+'**'
+				if len(item) > maximum[col]:
+					maximum[col] = len(item)
+			if style_type == 'italics':
+				item = '__'+item+'__'
+				if len(item) > maximum[col]:
+					maximum[col] = len(item)
+			if style_type == 'code':
+				item = '`'+item+'`'
+				if len(item) > maximum[col]:
+					maximum[col] = len(item)
 	return item
 
 # Variables that shift with formatting
@@ -60,7 +79,7 @@ for o, a in opts:
 if same_name and input_loc == '-':
 	base_name = os.path.basename(input_loc)
 	output_loc = os.path.split(input_loc)[0]+os.path.splitext(base_name)[0] + '.md'
-else:
+elif input_loc != '-' and same_name:
 	sys.stderr.write("Only -s or -o can be used at one time\n")
 	usage(3)
 	
@@ -75,6 +94,7 @@ max_length = 0
 rows = []
 data = []
 
+
 # Get information
 for line in r:
 	items = line.rstrip("\n, ").split(delim)
@@ -85,30 +105,90 @@ for line in r:
 if r is not sys.stdin:
 	r.close()
 
+if formatting:
+	f = open(format_file, 'r')
+	
+	special_locations = ()
+	style = False
+	format_options = ('bold', 'italics', 'code')
+	format_locations = ('row', 'col')
+	format_special_index = ('title', 'bottom', 'end', 'start')
+	format_command = ('remove')
+	formats = {}
+	for num, line in enumerate(f):
+		newline = line.strip().split()
+		key=['','']
+		value=[]
+		for index, word in enumerate(newline):
+			word = word.lower()
+			error = ''
+			if word in format_options:
+				value.append(word)
+			elif word in format_locations:
+				digit=0
+				if newline[index+1].isdigit():
+					digit = int(newline[index+1])
+					if word == 'row' and digit < len(data):
+						key[1] = digit
+					elif word == 'col' and digit < len(data[0]):
+						key[0] = digit
+					else: 
+						error = word+" out of range"
+				if newline[index+2] == "all" and error == '':
+					if word == 'row':
+						for i in range(0,len(data[0])):
+							key[0] = i
+					else:
+						for i in range(0, len(data)):
+							key[1] = i
+			elif word in format_special_index:
+				if word == 'title':
+					key[1] = 0
+				elif word == 'bottom':
+					key[1] = len(data)-1
+				elif word == 'start':
+					key[0] = 0
+				elif word == 'end':
+					key[0] = len(data[0])-1
+			elif word.isdigit() or word == 'all':
+				continue
+			else:
+				error = "Command was not found"
+
+			if error != '':
+				error_message(4, num+1, error)
+			
+			if key[0] != '' and key[1] != '':
+				continue
+		
+		formats[(key[0],key[1])] = value
+	f.close()
+
 # Parse information
-for row in data:
+for row_index, row in enumerate(data):
 	items = []
 	
-	for index, item in enumerate(row):
-		if len(maximum) >= index+1: # if length of max array large enough
-			if maximum[index] < len(item): # check and replace max if needed
-				maximum[index] = len(item)
+	for col_index, item in enumerate(row):
+		if len(maximum) >= col_index+1: # if length of max array large enough
+			if maximum[col_index] < len(item): # check and replace max if needed
+				maximum[col_index] = len(item)
 		else:
 			maximum.append(len(item)) # add new entry if not large enough
 	
 		if formatting:
-			item = format_item(item)	
+			item = format_item(item, col_index, row_index)	
 		
 		items.append(item) # append data to item array
 
 	rows.append(items) # add row of info to rows array
-
+	
 # Put table into destination file
 if output_loc and output_loc!='-':
 	w = open(output_loc, 'w')
 else:
 	w = sys.stdout
 
+# Print out 
 for num, row in enumerate(rows):
 	if num == 1:
 		for maxi in maximum:
