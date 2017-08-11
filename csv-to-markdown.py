@@ -145,7 +145,27 @@ def format_item(formats, item, col, row):
 				item = '`' + item + '`'
 	return item
 
-def parse_and_format(data, maximum, formats, formatting):
+def read_from_file(input_loc, delim):
+	if input_loc == '-':
+		r = sys.stdin
+	else:
+		r = open(input_loc, 'r')
+
+	max_length = 0
+	data = []
+	# Get information
+	for line in r:
+		items = line.rstrip("\n, ").split(delim)
+		data.append(items)
+		if max_length < len(items):
+			max_length = len(items)
+
+	if r is not sys.stdin:
+		r.close()
+
+	return data, max_length
+
+def parse_and_format(data, formats, formatting):
 	maximum = []
 	rows = []
 	# Parse information
@@ -242,35 +262,16 @@ def main():
 		usage(3)
 	elif same_name and input_loc == '-':
 		sys.stderr.write("Input file must be specified for -s\n")
-		usgae(5)
+		usage(5)
 
-	# Arrays for maximum characters per column and information
-	if input_loc == '-':
-		r = sys.stdin
-	else:
-		r = open(input_loc, 'r')
 
-	max_length = 0
-	data = []
-	maximum = []
-	rows = []
-
-	# Get information
-	for line in r:
-		items = line.rstrip("\n, ").split(delim)
-		data.append(items)
-		if max_length < len(items):
-			max_length = len(items)
-
-	if r is not sys.stdin:
-		r.close()
+	data, max_length = read_from_file(input_loc, delim)
 
 	# read in fomratting file
-	formats = {}
 	if formatting:
 		formats = read_format_file(data, format_file)
 
-	rows, maximum = parse_and_format(data, maximum, formats, formatting)
+	rows, maximum = parse_and_format(data, formats, formatting)
 	
 	print_data(output_loc, rows, maximum, max_length)
 
