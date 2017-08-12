@@ -73,6 +73,7 @@ def output_name(output_loc = '-', input_loc = '-'):
 	elif input_loc == '-':
 		sys.stderr.write("Input file must be specified for -s\n")
 		usage(5)
+	return output_loc
 
 def read_format_file(data, format_file):
 	f = open(format_file, 'r')
