@@ -1,4 +1,4 @@
-# CSV to Markdown Converter #
+# CSV and Markdown Conversion #
 
 A simple script to convert a `.csv` file into a nicely formatted Markdown table in plain text and when interpreted.
 
