@@ -92,6 +92,29 @@ def read_from_file(input_loc):
 
 	return data
 
+def remove_empty(items):
+
+	temp_list = []
+	items.reverse()
+
+	for index, item in enumerate(items):
+		if item != '':
+			temp_list = items[index:]
+			break
+		else:
+			continue
+
+	temp_list.reverse()
+
+	for index, item in enumerate(temp_list):
+		if item != '':
+			temp_list = temp_list[index:]
+			break
+		else:
+			continue
+
+	return temp_list
+
 def parse_and_format(data):
 	rows = []
 	# Parse information
@@ -108,10 +131,11 @@ def parse_and_format(data):
 					match = re.search('^([\*_`]).*([\*_`])$', item)
 				items.append(item) # append data to item array
 
-		if not items:
+		items = remove_empty(items)
+
+		if not len(items):
 			continue
 		else:
-			print(items)
 			rows.append(items) # add row of info to rows array
 
 	return rows
