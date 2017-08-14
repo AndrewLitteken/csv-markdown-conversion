@@ -75,7 +75,7 @@ def output_name(output_loc = '-', input_loc = '-'):
 		usage(5)
 	return output_loc
 
-def read_format_file(data, format_file):
+def read_format_file(data, format_file, max_length):
 	f = open(format_file, 'r')
 	
 	# Formatting infomration
@@ -114,7 +114,7 @@ def read_format_file(data, format_file):
 					if word == 'row' and digit < len(data):
 						key[1] = digit
 					#Assign location if in range
-					elif word == 'col' and digit < len(data[digit]):
+					elif word == 'col' and digit < max_length:
 						key[0] = digit
 					# set error
 					else: 
@@ -122,28 +122,33 @@ def read_format_file(data, format_file):
 						error_handler(4, num + 1, error)
 					
 					# Check for "all" keyword and set in dictionary
-					if newline[index+2] == "all" and error == '':
-						if word == 'row':
-							key_index = 0
-							length =  len(data[digit])
-						else:
-							key_index = 1
-							len(data)
-						for i in range(0,length):
-							key[key_index] = i
-							if (key[0],key[1]) in formats:
-								for styles in value:
-									formats[(key[0],key[1])].add(styles)
-							elif str(key[0]).isdigit() and str(key[1]).isdigit():
-								formats[(key[0],key[1])] = value
-					
-					# Check to see if an unsupported keyword has been given
-					elif error != '-' and newline[index + 2] not in format_locations and newline[index + 2] not in format_special_index and newline[index + 2] not in format_command and newline[index + 2] not in format_options:
-						error = newline[index + 2] + " is an unsupported keyword"
-						error_handler(4, num + 1, error)
+					if index + 2 < len(newline):
+						if newline[index+2] == "all" and error == '':
+							if word == 'row':
+								key_index = 0
+								length =  len(data[digit])
+							else:
+								key_index = 1
+								len(data)
+							for i in range(0,length):
+								key[key_index] = i
+								if (key[0],key[1]) in formats:
+									for styles in value:
+										formats[(key[0],key[1])].add(styles)
+								elif str(key[0]).isdigit() and str(key[1]).isdigit():
+									formats[(key[0],key[1])] = value
+						
+						# Check to see if an unsupported keyword has been given
+						elif error != '-' and newline[index + 2] not in format_locations and newline[index + 2] not in format_special_index and newline[index + 2] not in format_command and newline[index + 2] not in format_options:
+							error = newline[index + 2] + " is an unsupported keyword"
+							error_handler(4, num + 1, error)
 			
 			# Check for special keywords
 			elif word in format_special_index:
+				if str(key[0]).isdigit() and str(key[1]).isdigit():
+					error = 'location defined before "' + word +'"'
+					error_handler(4, num + 1, error)
+
 				if word == 'title':
 					key[1] = 0
 				elif word == 'bottom':
@@ -280,7 +285,7 @@ def main():
 
 	# read in fomratting file
 	if formatting:
-		formats = read_format_file(data, format_file)
+		formats = read_format_file(data, format_file, max_length)
 
 	rows, maximum = parse_and_format(data, formats, formatting)
 	
