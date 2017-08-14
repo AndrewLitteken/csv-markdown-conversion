@@ -119,7 +119,7 @@ def remove_empty(items):
 
 def parse_and_format(data):
 	rows = []
-	formatting = {'bold': set(), 'italic': set(), 'code': set()}
+	formatting = {'bold': set(), 'italics': set(), 'code': set()}
 	# Parse information
 	row_index = 0
 	max_length = 0
@@ -137,7 +137,7 @@ def parse_and_format(data):
 					if match.group(1) == '*':
 						style = 'bold'
 					elif match.group(1) == '_':
-						style = 'italic'
+						style = 'italics'
 					elif match.group(1) == '`':
 						style = 'code'
 
@@ -183,41 +183,53 @@ def print_data(output_loc, rows):
 
 def make_format_file(formatting, rows, max_length):
 
-	style_row_keywords = {'bold': {}, 'italic': {}, 'code': {}}
-	style_col_keywords = {'bold': {}, 'italic': {}, 'code': {}}
+	style_row_keywords = {'bold': {}, 'italics': {}, 'code': {}}
+	style_col_keywords = {'bold': {}, 'italics': {}, 'code': {}}
+
+	w = open('format_file.txt', 'w+')
+
 	for key in style_row_keywords:
 		for index, row in enumerate(rows):
-			style_row_keywords[key][index] = ['all']
+			style_row_keywords[key][index] = {'all'}
 		for i in range(0, max_length):
-			style_col_keywords[key][i] = ['all']
+			style_col_keywords[key][i] = {'all'}
 
 	for key in style_row_keywords:
 		for row in range(0, len(rows)):
 			for col in range(0, len(rows[row])):
-				if (col, row) in formatting[key]:
+				if (row, col) in formatting[key]:
 					continue
 				else:
-					style_col_keywords[key][col] = ['']
-					style_row_keywords[key][row] = ['']
+					style_col_keywords[key][col] = set()
+					style_row_keywords[key][row] = set()
 
-	for key in style_row_keywords:
 		for row in range(0, len(rows)):
 			if 'all' not in style_row_keywords[key][row]:
 				if (row, 0) in formatting[key]:
-					style_row_keywords[key][row].append('start')
+					style_row_keywords[key][row].add('start')
 				if (row, len(rows[row]) - 1) in formatting[key]:
-					style_row_keywords[key][row].append('end')
+					style_row_keywords[key][row].add('end')
 		for col in range(0, max_length):
-			if 'all' not in style_row_keywords[key][col]:
-				if (0, col) in formatting[key]:
-					style_col_keywords[key][col].append('title')
-				if (len(rows)-1, col) in formatting[key]:
-					style_col_keywords[key][col].append('bottom')
+			if 'all' not in style_col_keywords[key][col]:
+				if (0, col) in formatting[key] and 'all' not in style_row_keywords[key][0]:
+					style_col_keywords[key][col].add('title')
+				if (len(rows)-1, col) in formatting[key] and 'all' not in style_row_keywords[key][len(rows)-1]:
+					style_col_keywords[key][col].add('bottom')
 	
-	for key in style_row_keywords:
-		for row in range(0, len(rows)):
-			for col in range(1, len(rows[row])):
-				
+		for row in range(1, len(rows) - 1):
+			for col in range(1, len(rows[row]) - 1):
+				if 'all' not in style_row_keywords[key][row]:
+					if (row, col) in formatting[key] and len(style_col_keywords[key][col]) == 0:
+						style_row_keywords[key][row].add('col ' + str(col))
+
+		for index, value in style_row_keywords[key].items():
+			for item in value:
+				w.write(key + ' row ' + str(index) + ' ' + item + '\n')
+
+		for index, value in style_col_keywords[key].items():
+			for item in value:
+				w.write(key + ' col ' + str(index) + ' ' + item + '\n')
+
 
 
 	
