@@ -6,7 +6,7 @@ import getopt
 def usage(code = 0):
 	print('''
     usage: csv-to-markdown.py [-hv] [-i --input input_file] [-s --samename | -o
-		   --output output_file] [-d --delimeter delimeter] [-f --format format_file]
+		   --output output_file] [-f --format format_file]
  		   [--help]
     
     -h --help : Show usage statement
