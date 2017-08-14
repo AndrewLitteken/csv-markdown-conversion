@@ -26,7 +26,6 @@ def error_handler(code, line_num, err):
 
 def command_line_parse():
 	# Variables that shift with formatting
-	delim = ','
 	output_loc = '-'
 	same_name = False
 	input_loc = '-'
@@ -36,7 +35,7 @@ def command_line_parse():
 
 	# Command line options
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'hsvd:i:o:f:', ["help", "verbose", "same_name", "delimeter=", "format=", "input=", "output="])
+		opts, args = getopt.getopt(sys.argv[1:], 'hsv:i:o:f:', ["help", "verbose", "same_name", "format=", "input=", "output="])
 	except getopt.GetoptError as err:
 		print(err)
 		usage(2)
@@ -54,14 +53,12 @@ def command_line_parse():
 			output_loc = a
 		elif o in ("-v", "--verbose"):
 			verbose = True
-		elif o in ("-d", "--delimeter"):
-			delim = a
 		elif o in ("-h", "--help"):
 			usage(0)
 		else:
 			assert False, "unhandled option"
 
-	return output_loc, same_name, input_loc, verbose
+	return output_loc, same_name, input_loc, format_file, verbose
 
 def output_name(output_loc = '-', input_loc = '-'):
 	# Create destination file if same as input and output not specified
@@ -181,12 +178,12 @@ def print_data(output_loc, rows):
 	if w is not sys.stdout:
 		w.close()
 
-def make_format_file(formatting, rows, max_length):
+def make_format_file(formatting, rows, max_length, format_file):
 
 	style_row_keywords = {'bold': {}, 'italics': {}, 'code': {}}
 	style_col_keywords = {'bold': {}, 'italics': {}, 'code': {}}
 
-	w = open('format_file.txt', 'w+')
+	w = open(format_file, 'w+')
 
 	for key in style_row_keywords:
 		for index, row in enumerate(rows):
@@ -234,7 +231,7 @@ def make_format_file(formatting, rows, max_length):
 
 	
 def main():
-	output_loc, same_name, input_loc, verbose = command_line_parse()
+	output_loc, same_name, input_loc, format_file, verbose = command_line_parse()
 
 	if same_name:
 		output_loc = output_name(output_loc, input_loc)
@@ -245,7 +242,8 @@ def main():
 
 	print_data(output_loc, rows)
 
-	make_format_file(formatting, rows, max_length)
+	if formatting:
+		make_format_file(formatting, rows, max_length, format_file)
 
 if __name__ == '__main__':
 	main()
