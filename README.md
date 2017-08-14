@@ -1,6 +1,6 @@
 # CSV and Markdown Conversion #
 
-A set of scripts to convert a `.csv` file into a nicely formatted Markdown table in plain text or convert a Markdown Table to a `.csv` table..
+A set of scripts to convert a `.csv` file into a nicely formatted Markdown table in plain text or convert a Markdown Table to a `.csv` table.
 
 Written in Python and compatible with both Python 2.7 and Python 3.
 
@@ -19,7 +19,7 @@ Can support any delimeter, but a comma is supported by default
 #### Markdown to CSV Exclusive ####
 `-f --format format_file` : Put formatting in designated file<br>
 
-#### CSV to Markdown Exclusive####
+#### CSV to Markdown Exclusive ####
 `-d --delimeter delimeter` : use the given delimeter<br>
 `-f --format format_file` : use the given file for formatting<br>
 
