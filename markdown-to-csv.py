@@ -85,6 +85,9 @@ def read_from_file(input_loc):
 	# Get information
 	for line in r:
 		items = line.strip().split('|')
+		for index, item in enumerate(items):
+			items[index] = item.strip()
+		items = remove_empty(items)
 		data.append(items)
 
 	if r is not sys.stdin:
@@ -94,51 +97,71 @@ def read_from_file(input_loc):
 
 def remove_empty(items):
 
-	temp_list = []
+	items.reverse()
+	
+	for index, item in enumerate(items):
+		if item != '':
+			items = items[index:]
+			break
+		else:
+			continue
+
 	items.reverse()
 
 	for index, item in enumerate(items):
 		if item != '':
-			temp_list = items[index:]
+			items = items[index:]
 			break
 		else:
 			continue
 
-	temp_list.reverse()
-
-	for index, item in enumerate(temp_list):
-		if item != '':
-			temp_list = temp_list[index:]
-			break
-		else:
-			continue
-
-	return temp_list
+	return items
 
 def parse_and_format(data):
 	rows = []
+	formatting = {'bold': set(), 'italic': set(), 'code': set()}
 	# Parse information
+	row_index = 0
+	max_length = 0
 	for row in data:
 		items = []
-		
-		for item in row:
+		no_add = False
+		for col_index, item in enumerate(row):
 			match = re.search('^-*-$', item)
 			if match == None:
 				item = item.strip()
 				match = re.search('^([\*_`]).*([\*_`])$', item)
 				while match != None:
 					item = item.strip(match.group(1))
+					style = ''
+					if match.group(1) == '*':
+						style = 'bold'
+					elif match.group(1) == '_':
+						style = 'italic'
+					elif match.group(1) == '`':
+						style = 'code'
+
+					if style != '':
+						formatting[style].add((row_index, col_index))
 					match = re.search('^([\*_`]).*([\*_`])$', item)
 				items.append(item) # append data to item array
+			else:
+				no_add = True
 
-		items = remove_empty(items)
+		# items = remove_empty(items)
 
 		if not len(items):
 			continue
 		else:
 			rows.append(items) # add row of info to rows array
 
-	return rows
+		if len(items) > max_length:
+			max_length = len(items)
+
+		if not no_add:
+			row_index += 1
+
+	return rows, formatting, max_length
 
 def print_data(output_loc, rows):
 	# Put table into destination file
@@ -158,6 +181,46 @@ def print_data(output_loc, rows):
 	if w is not sys.stdout:
 		w.close()
 
+def make_format_file(formatting, rows, max_length):
+
+	style_row_keywords = {'bold': {}, 'italic': {}, 'code': {}}
+	style_col_keywords = {'bold': {}, 'italic': {}, 'code': {}}
+	for key in style_row_keywords:
+		for index, row in enumerate(rows):
+			style_row_keywords[key][index] = ['all']
+		for i in range(0, max_length):
+			style_col_keywords[key][i] = ['all']
+
+	for key in style_row_keywords:
+		for row in range(0, len(rows)):
+			for col in range(0, len(rows[row])):
+				if (col, row) in formatting[key]:
+					continue
+				else:
+					style_col_keywords[key][col] = ['']
+					style_row_keywords[key][row] = ['']
+
+	for key in style_row_keywords:
+		for row in range(0, len(rows)):
+			if 'all' not in style_row_keywords[key][row]:
+				if (row, 0) in formatting[key]:
+					style_row_keywords[key][row].append('start')
+				if (row, len(rows[row]) - 1) in formatting[key]:
+					style_row_keywords[key][row].append('end')
+		for col in range(0, max_length):
+			if 'all' not in style_row_keywords[key][col]:
+				if (0, col) in formatting[key]:
+					style_col_keywords[key][col].append('title')
+				if (len(rows)-1, col) in formatting[key]:
+					style_col_keywords[key][col].append('bottom')
+	
+	for key in style_row_keywords:
+		for row in range(0, len(rows)):
+			for col in range(1, len(rows[row])):
+				
+
+
+	
 def main():
 	output_loc, same_name, input_loc, verbose = command_line_parse()
 
@@ -166,9 +229,11 @@ def main():
 
 	data = read_from_file(input_loc)
 
-	rows = parse_and_format(data)
+	rows, formatting, max_length = parse_and_format(data)
 
 	print_data(output_loc, rows)
+
+	make_format_file(formatting, rows, max_length)
 
 if __name__ == '__main__':
 	main()
