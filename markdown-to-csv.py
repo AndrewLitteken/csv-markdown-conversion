@@ -15,7 +15,6 @@ def usage(code = 0):
 
     -i --input input_file : use given file for input
     -o --output output_file : use given file for output
-    -d --delimeter delimeter : use the given delimeter
     -f --format format_file : use the given file for formatting
 	''')
 	sys.exit(code)
