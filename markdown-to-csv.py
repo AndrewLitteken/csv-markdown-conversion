@@ -83,6 +83,7 @@ def read_from_file(input_loc):
 		items = line.strip().split('|')
 		for index, item in enumerate(items):
 			items[index] = item.strip()
+		# remove ending blanks and leading blanks
 		items = remove_empty(items)
 		data.append(items)
 
@@ -93,8 +94,9 @@ def read_from_file(input_loc):
 
 def remove_empty(items):
 
-	items.reverse()
+	items.reverse() # reverse array
 	
+	# find last filled cell, include following cells
 	for index, item in enumerate(items):
 		if item != '':
 			items = items[index:]
@@ -102,7 +104,7 @@ def remove_empty(items):
 		else:
 			continue
 
-	items.reverse()
+	items.reverse() # reverse and follow process
 
 	for index, item in enumerate(items):
 		if item != '':
@@ -123,26 +125,26 @@ def parse_and_format(data):
 		items = []
 		no_add = False
 		for col_index, item in enumerate(row):
-			match = re.search('^-*-$', item)
-			if match == None:
+			match = re.search('^-*-$', item) # check if line break
+			if match == None: # if not break
 				item = item.strip()
-				match = re.search('^([\*_`]).*([\*_`])$', item)
-				while match != None:
+				match = re.search('^([\*_`])(.).*$', item)
+				while match != None: # Check if begins with emphasis
 					item = item.strip(match.group(1))
 					style = ''
-					if match.group(1) == '*':
-						style = 'bold'
-					elif match.group(1) == '_':
-						style = 'italics'
-					elif match.group(1) == '`':
+					if match.group(1) == '`': # if code
 						style = 'code'
+					elif match.group(1) == match.group(2): # if two emphasis
+						style = 'bold'
+					elif match.group(1) != match.group(2): # if jsut one
+						style = 'italics'
 
-					if style != '':
-						formatting[style].add((row_index, col_index))
-					match = re.search('^([\*_`]).*([\*_`])$', item)
+					if style != '': # if style matched
+						formatting[style].add((row_index, col_index)) # add to formatting
+					match = re.search('^([\*_`])(.).*$', item)
 				items.append(item) # append data to item array
 			else:
-				no_add = True
+				no_add = True # don't add line rows
 
 		# items = remove_empty(items)
 
@@ -151,10 +153,10 @@ def parse_and_format(data):
 		else:
 			rows.append(items) # add row of info to rows array
 
-		if len(items) > max_length:
+		if len(items) > max_length: # find max length of rows
 			max_length = len(items)
 
-		if not no_add:
+		if not no_add: # Increase row number
 			row_index += 1
 
 	return rows, formatting, max_length
@@ -179,19 +181,22 @@ def print_data(output_loc, rows):
 
 def make_format_file(formatting, rows, max_length, format_file):
 
+	# emphasis dictionaries
 	style_row_keywords = {'bold': {}, 'italics': {}, 'code': {}}
 	style_col_keywords = {'bold': {}, 'italics': {}, 'code': {}}
 
-	w = open(format_file, 'w+')
+	w = open(format_file, 'w+') # open file
 
+	# fill with defualt of whole row or col filled
 	for key in style_row_keywords:
 		for index, row in enumerate(rows):
 			style_row_keywords[key][index] = {'all'}
 		for i in range(0, max_length):
 			style_col_keywords[key][i] = {'all'}
 
+	# look through each key
 	for key in style_row_keywords:
-		for row in range(0, len(rows)):
+		for row in range(0, len(rows)): # check to see if entire row styled
 			for col in range(0, len(rows[row])):
 				if (row, col) in formatting[key]:
 					continue
@@ -199,7 +204,7 @@ def make_format_file(formatting, rows, max_length, format_file):
 					style_col_keywords[key][col] = set()
 					style_row_keywords[key][row] = set()
 
-		for row in range(0, len(rows)):
+		for row in range(0, len(rows)): # check to see if title, bottom, start, or end is styled
 			if 'all' not in style_row_keywords[key][row]:
 				if (row, 0) in formatting[key]:
 					style_row_keywords[key][row].add('start')
@@ -212,19 +217,21 @@ def make_format_file(formatting, rows, max_length, format_file):
 				if (len(rows)-1, col) in formatting[key] and 'all' not in style_row_keywords[key][len(rows)-1]:
 					style_col_keywords[key][col].add('bottom')
 	
-		for row in range(1, len(rows) - 1):
+		for row in range(1, len(rows) - 1): # look for remaining styled cells
 			for col in range(1, len(rows[row]) - 1):
 				if 'all' not in style_row_keywords[key][row]:
 					if (row, col) in formatting[key] and len(style_col_keywords[key][col]) == 0:
 						style_row_keywords[key][row].add('col ' + str(col))
 
-		for index, value in style_row_keywords[key].items():
+		for index, value in style_row_keywords[key].items(): # print to file
 			for item in value:
 				w.write(key + ' row ' + str(index) + ' ' + item + '\n')
 
 		for index, value in style_col_keywords[key].items():
 			for item in value:
 				w.write(key + ' col ' + str(index) + ' ' + item + '\n')
+
+	w.close()
 
 
 
